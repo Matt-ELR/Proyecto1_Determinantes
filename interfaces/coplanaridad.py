@@ -1,22 +1,22 @@
 import tkinter as tk
 from tkinter import ttk
-import geometria # Importación desde la raíz
+import geometria  # Importación desde la raíz
 
-class TetraedroFrame(ttk.Frame): # Cambio a ttk para consistencia
+class CoplanaridadFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
         titulo = ttk.Label(
             self, 
-            text="Volumen de un Tetraedro (3D)", 
+            text="Prueba de Coplanaridad (3D)", 
             font=("Arial", 16, "bold")
         )
         titulo.pack(pady=15)
 
         descripcion = ttk.Label(
             self, 
-            text="Introduce los 4 puntos en el espacio", 
-            font=("Arial", 11)
+            text="Si el det = 0, los 4 puntos están en el mismo plano", 
+            font=("Arial", 11, "italic")
         )
         descripcion.pack(pady=5)
 
@@ -24,15 +24,15 @@ class TetraedroFrame(ttk.Frame): # Cambio a ttk para consistencia
         matrix_frame = ttk.Frame(self)
         matrix_frame.pack(pady=10)
 
-        # Encabezados de columna
+        # Encabezados
         ttk.Label(matrix_frame, text="X", font=("Arial", 10, "italic")).grid(row=0, column=1)
         ttk.Label(matrix_frame, text="Y", font=("Arial", 10, "italic")).grid(row=0, column=2)
         ttk.Label(matrix_frame, text="Z", font=("Arial", 10, "italic")).grid(row=0, column=3)
 
-        # Barras del determinante
+        # Barras visuales
         ttk.Label(matrix_frame, text="|", font=("Arial", 35)).grid(row=1, column=0, rowspan=4)
         
-        self.points_entries = [] # Lista para almacenar las filas de entradas
+        self.points_entries = []
 
         for i in range(4):
             row_entries = []
@@ -51,7 +51,7 @@ class TetraedroFrame(ttk.Frame): # Cambio a ttk para consistencia
         button_frame.pack(pady=15)
 
         ttk.Button(
-            button_frame, text="Calcular Volumen", width=18, command=self.calcular
+            button_frame, text="Verificar Coplanaridad", width=20, command=self.verificar
         ).grid(row=0, column=0, padx=10)
 
         ttk.Button(
@@ -59,24 +59,24 @@ class TetraedroFrame(ttk.Frame): # Cambio a ttk para consistencia
             command=lambda: controller.show_frame("MenuFrame")
         ).grid(row=0, column=1)
 
-        self.resultado = ttk.Label(self, text="", font=("Arial", 12, "bold"), foreground="#0056b3")
+        self.resultado = ttk.Label(self, text="", font=("Arial", 12, "bold"))
         self.resultado.pack(pady=10)
 
-    def calcular(self):
+    def verificar(self):
         try:
             puntos = []
             for row in self.points_entries:
-                # Convertimos cada fila de Entry en una tupla (x, y, z)
                 coords = tuple(float(e.get()) for e in row)
                 puntos.append(coords)
 
-            # Llamada a tu función matemática
-            volumen = geometria.volumen_tetraedro(puntos[0], puntos[1], puntos[2], puntos[3])
+            # Llamada a tu lógica de coplanaridad
+            # Esta ya usa la tolerancia 1e-9 que definimos
+            es_coplanar = geometria.son_coplanares(puntos[0], puntos[1], puntos[2], puntos[3])
 
-            if volumen == 0:
-                self.resultado.config(text="Volumen = 0 (Puntos coplanares)", foreground="orange")
+            if es_coplanar:
+                self.resultado.config(text="¡Son Coplanares! (V = 0)", foreground="green")
             else:
-                self.resultado.config(text=f"Volumen = {volumen:.4f} u³", foreground="#0056b3")
+                self.resultado.config(text="No son Coplanares (V ≠ 0)", foreground="red")
 
         except ValueError:
-            self.resultado.config(text="Error: Ingresa números válidos", foreground="red")
+            self.resultado.config(text="Error: Ingresa números válidos", foreground="orange")

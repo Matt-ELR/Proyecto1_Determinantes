@@ -1,10 +1,21 @@
+# Bibliotecas
 import tkinter as tk
 from tkinter import ttk
 
+# Frames
+# Menus
 from interfaces.menu import MenuFrame
+from interfaces.menu_geometria_2d import Geometria2DFrame
+from interfaces.menu_geometria_3d import Geometria3DFrame
+# a) Regla de Cramer
+from interfaces.regla_de_cramer import ReglaDeCramerFrame
+# b) Geometria 2D
 from interfaces.triangulo import TrianguloFrame
+from interfaces.colinealidad import ColinealidadFrame
 from interfaces.recta import RectaFrame
+# c) Geometria 3D
 from interfaces.tetraedro import TetraedroFrame
+from interfaces.coplanaridad import CoplanaridadFrame
 from interfaces.plano import PlanoFrame
 
 
@@ -14,9 +25,10 @@ class CalculadoraGeometrica(tk.Tk):
         super().__init__()
 
         # Window config
-        self.title("Calculadora Geométrica con Determinantes")
+        self.title("Aplicaciones Clásicas de los Determinantes")
         self.geometry("600x450")
-        self.configure(bg="#2b2b2b")   # background of the window
+        self.eval('tk::PlaceWindow . center')
+        self.configure(bg="#E4E4E4")
 
         style = ttk.Style(self)
         style.theme_use("clam")
@@ -53,9 +65,14 @@ class CalculadoraGeometrica(tk.Tk):
 
         for FrameClass in (
             MenuFrame,
+            ReglaDeCramerFrame,
+            Geometria2DFrame,
             TrianguloFrame,
+            ColinealidadFrame,
             RectaFrame,
+            Geometria3DFrame,
             TetraedroFrame,
+            CoplanaridadFrame,
             PlanoFrame
         ):
 
