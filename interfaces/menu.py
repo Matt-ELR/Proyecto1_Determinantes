@@ -1,7 +1,8 @@
+# Bibliotecas
 import tkinter as tk
 from tkinter import ttk
 
-
+# Frame
 class MenuFrame(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -9,42 +10,34 @@ class MenuFrame(tk.Frame):
 
         titulo = ttk.Label(
             self,
-            text="Calculadora Geométrica",
-            font=("Arial", 18)
+            text="Aplicaciones Clásicas de los Determinantes",
+            font=("Times New Roman", 18)
         )
         titulo.pack(pady=20)
 
         boton_triangulo = ttk.Button(
             self,
-            text="Triángulo",
+            text="Regla de Cramer",
             width=20,
-            command=lambda: controller.show_frame("TrianguloFrame")
+            command=lambda: controller.show_frame("ReglaDeCramerFrame")
         )
         boton_triangulo.pack(pady=10)
 
         boton_recta = ttk.Button(
             self,
-            text="Recta",
+            text="Geometría 2D",
             width=20,
-            command=lambda: controller.show_frame("RectaFrame")
+            command=lambda: controller.show_frame("Geometria2DFrame")
         )
         boton_recta.pack(pady=10)
 
         boton_plano = ttk.Button(
             self,
-            text="Plano",
+            text="Geometría 3D",
             width=20,
-            command=lambda: controller.show_frame("PlanoFrame")
+            command=lambda: controller.show_frame("Geometria3DFrame")
         )
         boton_plano.pack(pady=10)
-
-        boton_tetraedro = ttk.Button(
-            self,
-            text="Tetraedro",
-            width=20,
-            command=lambda: controller.show_frame("TetraedroFrame")
-        )
-        boton_tetraedro.pack(pady=10)
 
         boton_salir = ttk.Button(
             self,
