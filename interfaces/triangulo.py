@@ -10,15 +10,15 @@ class TrianguloFrame(tk.Frame):
 
         titulo = ttk.Label(
             self,
-            text="Área de un Triángulo usando Determinantes",
-            font=("Arial", 16, "bold")
+            text="Área de Triángulos",
+            font=("Times New Roman", 16, "bold")
         )
         titulo.pack(pady=15)
 
         descripcion = ttk.Label(
             self,
             text="Introduce los puntos del triángulo",
-            font=("Arial", 11)
+            font=("Times New Roman", 11)
         )
         descripcion.pack(pady=5)
 
@@ -27,7 +27,7 @@ class TrianguloFrame(tk.Frame):
         matrix_frame.pack(pady=10)
 
         # Barra izquierda del determinante
-        ttk.Label(matrix_frame, text="|", font=("Arial", 28)).grid(row=0, column=0, rowspan=3)
+        ttk.Label(matrix_frame, text="|", font=("Times New Roman", 28)).grid(row=0, column=0, rowspan=3)
 
         # Fila 1
         self.x1 = ttk.Entry(matrix_frame, width=6)
@@ -57,7 +57,7 @@ class TrianguloFrame(tk.Frame):
         ttk.Label(matrix_frame, text="1").grid(row=2, column=3)
 
         # Barra derecha del determinante
-        ttk.Label(matrix_frame, text="|", font=("Arial", 28)).grid(row=0, column=4, rowspan=3)
+        ttk.Label(matrix_frame, text="|", font=("Times New Roman", 28)).grid(row=0, column=4, rowspan=3)
 
         # Botones
         button_frame = ttk.Frame(self)
@@ -81,7 +81,7 @@ class TrianguloFrame(tk.Frame):
         self.resultado = ttk.Label(
             self,
             text="",
-            font=("Arial", 12, "bold")
+            font=("Times New Roman", 12, "bold")
         )
         self.resultado.pack(pady=10)
 
@@ -94,7 +94,7 @@ class TrianguloFrame(tk.Frame):
 
             area = area_triangulo(p1, p2, p3)
 
-            self.resultado.config(text=f"Área = {area:.4f}")
+            self.resultado.config(text=f"Área = {area:.4f} u²")
 
-        except:
+        except ValueError:
             self.resultado.config(text="Error: verifica los valores")
