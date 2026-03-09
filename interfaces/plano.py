@@ -1,81 +1,90 @@
 import tkinter as tk
-from tkinter import ttk
-import geometria # Importación desde la raíz
+from tkinter import ttk, messagebox
+import geometria
 
-class PlanoFrame(ttk.Frame): # Usamos ttk.Frame para el estilo global
+class PlanoFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        titulo = ttk.Label(
-            self, 
-            text="Ecuación del Plano (3D)", 
-            font=("Arial", 16, "bold")
-        )
-        titulo.pack(pady=15)
+        # Titulo
+        ttk.Label(self, text="Ecuación del Plano (3D)", font=("Times New Roman", 16, "bold")).pack(pady=10)
+        ttk.Label(self, text="Determina Ax + By + Cz + D = 0 a partir de 3 puntos.", font=("Times New Roman", 10, "italic")).pack(pady=2)
 
-        descripcion = ttk.Label(
-            self, 
-            text="Introduce 3 puntos para obtener Ax + By + Cz + D = 0", 
-            font=("Arial", 11)
-        )
-        descripcion.pack(pady=5)
+        # Selector de metodo determinante
+        select_frame = ttk.Frame(self)
+        select_frame.pack(pady=10)
+        ttk.Label(select_frame, text="Metodo de calculo:").pack(side="left", padx=5)
+        self.metodo_var = tk.StringVar(value="Eliminación Gauss")
+        self.combo_metodo = ttk.Combobox(select_frame, textvariable=self.metodo_var,
+                                         values=["Eliminación Gauss", "Formula de Laplace"], 
+                                         width=18, state="readonly")
+        self.combo_metodo.pack(side="left", padx=5)
 
-        # Marco del determinante visual
+        # Marco para la matriz de determinantes
         matrix_frame = ttk.Frame(self)
         matrix_frame.pack(pady=10)
 
-        # Barra izquierda
-        ttk.Label(matrix_frame, text="|", font=("Arial", 35)).grid(row=0, column=0, rowspan=4)
+        # Barra izquierda del determinante
+        ttk.Label(matrix_frame, text="|", font=("Times New Roman", 28)).grid(row=1, column=0, rowspan=4)
 
-        # FILA 1: Variables simbólicas (x, y, z, 1)
-        ttk.Label(matrix_frame, text="x", font=("Arial", 12, "italic")).grid(row=0, column=1, padx=10)
-        ttk.Label(matrix_frame, text="y", font=("Arial", 12, "italic")).grid(row=0, column=2, padx=10)
-        ttk.Label(matrix_frame, text="z", font=("Arial", 12, "italic")).grid(row=0, column=3, padx=10)
-        ttk.Label(matrix_frame, text="1", font=("Arial", 12)).grid(row=0, column=4, padx=10)
+        # Encabezados
+        simbolos = [("x", "italic"), ("y", "italic"), ("z", "italic"), ("1", "normal")]
+        for j, (txt, style) in enumerate(simbolos):
+            ttk.Label(matrix_frame, text=txt, font=("Arial", 11, style)).grid(row=0, column=j+1, padx=10)
 
-        # Creación de filas para puntos P1, P2 y P3
-        self.points_entries = []
+        # Matriz
+        self.entries = []
         for i in range(3):
             row_entries = []
             for j in range(3):
                 e = ttk.Entry(matrix_frame, width=6)
                 e.grid(row=i+1, column=j+1, padx=4, pady=3)
                 row_entries.append(e)
-            
-            ttk.Label(matrix_frame, text="1").grid(row=i+1, column=4, padx=5)
-            self.points_entries.append(row_entries)
 
-        # Barra derecha
-        ttk.Label(matrix_frame, text="|", font=("Arial", 35)).grid(row=0, column=5, rowspan=4)
+            ttk.Label(matrix_frame, text="1").grid(row=i+1, column=4, padx=5)
+            self.entries.append(row_entries)
+
+        # Barra derecha del determinante
+        ttk.Label(matrix_frame, text="|", font=("Times New Roman", 28)).grid(row=0, column=5, rowspan=4)
 
         # Botones
-        button_frame = ttk.Frame(self)
-        button_frame.pack(pady=15)
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(pady=25)
 
-        ttk.Button(
-            button_frame, text="Generar Plano", width=15, command=self.calcular
-        ).grid(row=0, column=0, padx=10)
+        ttk.Button(btn_frame, text="Calcular", command=self.calcular).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Limpiar", command=self.limpiar_campos).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Volver (3D)", 
+                   command=lambda: controller.show_frame("Geometria3DFrame")).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Menú Principal", 
+                   command=lambda: controller.show_frame("MenuFrame")).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Salir", command=self.quit).pack(side="left", padx=5)
 
-        ttk.Button(
-            button_frame, text="Volver", width=10, 
-            command=lambda: controller.show_frame("MenuFrame")
-        ).grid(row=0, column=1)
-
-        self.resultado = ttk.Label(self, text="", font=("Arial", 12, "bold"), foreground="#0056b3")
-        self.resultado.pack(pady=10)
+        # Resultado
+        self.res_label = ttk.Label(self, text="", font=("Times New Roman", 13, "bold"))
+        self.res_label.pack(pady=10)
 
     def calcular(self):
         try:
-            puntos = []
-            for row in self.points_entries:
-                puntos.append(tuple(float(e.get()) for e in row))
+            puntos = [[float(e.get()) for e in row] for row in self.entries]
 
-            # Tu función ya devuelve la cadena formateada "Ax + By + Cz + D = 0"
-            resultado_texto = geometria.ecuacion_plano(puntos[0], puntos[1], puntos[2])
-            
-            self.resultado.config(text=f"Ecuación: {resultado_texto}", foreground="#0056b3")
+            if puntos[0] == puntos[1] or puntos[0] == puntos[2] or puntos[1] == puntos[2]:
+                messagebox.showwarning("Puntos Inválidos", "Se requieren 3 puntos distintos para definir un plano.")
+                return
+
+            metodo_func = geometria.det_gauss if self.metodo_var.get() == "Eliminación Gauss" else geometria.det_laplace
+
+            resultado_texto = geometria.ecuacion_plano(puntos, metodo_func)
+            self.res_label.config(text=f"Plano: {resultado_texto}")
+
+            resultado_texto = geometria.ecuacion_plano(puntos, metodo_func)
+            self.res_label.config(text=f"Plano: {resultado_texto}")
 
         except ValueError:
-            self.resultado.config(text="Error: Ingresa números válidos", foreground="red")
+            messagebox.showerror("Error", "Por favor, ingresa coordenadas numéricas válidas.")
         except Exception as e:
-            self.resultado.config(text=f"Error: {str(e)}", foreground="red")
+            messagebox.showerror("Error de Cálculo", str(e))
+
+    def limpiar_campos(self):
+        for row in self.entries:
+            for e in row: e.delete(0, tk.END)
+        self.res_label.config(text="")

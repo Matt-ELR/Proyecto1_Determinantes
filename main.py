@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 
 # Frames
-# Menus
+# Menús
 from interfaces.menu import MenuFrame
 from interfaces.menu_geometria_2d import Geometria2DFrame
 from interfaces.menu_geometria_3d import Geometria3DFrame
@@ -26,7 +26,7 @@ class CalculadoraGeometrica(tk.Tk):
 
         # Window config
         self.title("Aplicaciones Clásicas de los Determinantes")
-        self.geometry("600x450")
+        self.geometry("600x600")
         self.eval('tk::PlaceWindow . center')
         self.configure(bg="#E4E4E4")
 

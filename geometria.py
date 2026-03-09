@@ -1,8 +1,30 @@
-def det_gauss(A, n=None):
-    if n is None:
-        n = len(A)
+# ========================================
+# Calculo de determinantes
+# ========================================
 
-    A = [fila[:] for fila in A]
+# Calculo mediante la formula de Laplace
+def det_laplace(matriz, n=None):
+    if n is None:
+        n = len(matriz)
+
+    if n == 1:
+        return matriz[0][0]
+    
+    if n == 2:
+        return matriz[0][0] * matriz[1][1] - matriz[0][1] * matriz[1][0]
+    
+    det = 0
+    for j in range(n):
+        submatriz = [fila[:j] + fila[j+1:] for fila in matriz[1:]]
+        det += ((-1)**j) * matriz[0][j] * det_laplace(submatriz)
+    return det
+
+# Eliminación mediante metodo de Gauss
+def det_gauss(matriz, n=None):
+    if n is None:
+        n = len(matriz)
+
+    A = [fila[:] for fila in matriz]
     determinante = 1
 
     for i in range(n):
@@ -25,112 +47,146 @@ def det_gauss(A, n=None):
 
     return determinante
 
-# A) Regla de Cramer
-def regla_de_cramer(A, b):
-    n = len(A)
-    
-    determinante = det_gauss(A)
+# =======================================
+# Formatos
+# =======================================
 
-    if determinante == 0:
+# Funciones de recta y plano
+def formatear_ecuacion(coeficientes, variables):
+    terminos = []
+
+    for i, (c, var) in enumerate(zip(coeficientes, variables)):
+        if round(c, 4) == 0: continue
+
+        if not terminos:
+            signo = "" if c > 0 else "-"
+        else:
+            signo = " + " if c > 0 else " - "
+
+        abs_c = abs(c)
+        if abs_c == 1 and var != "":
+            str_c = ""
+        else:
+            str_c = f"{abs_c:g}"
+
+        terminos.append(f"{signo}{str_c}{var}")
+
+    return "".join(terminos) if terminos else "0"
+
+# ========================================
+# A) Regla de Cramer
+# ========================================
+
+# Se declara un parametro opcional metodo_det para elegir entre los metodos de calculo de determinantes
+def regla_de_cramer(matriz_A, b, metodo_det=det_gauss):
+    n = len(matriz_A)
+    
+    determinante = metodo_det(matriz_A, n)
+
+    if abs(determinante) < 1e-9:
         raise ValueError("El sistema no tiene solución única")
 
     soluciones = []
 
     for i in range(n):
 
-        Ai = [fila[:] for fila in A]
+        matriz_Ai = [fila[:] for fila in matriz_A]
 
         for j in range(n):
-            Ai[j][i] = b[j]
+            matriz_Ai[j][i] = b[j]
 
-        determinante_i = det_gauss(Ai, n)
+        determinante_i = metodo_det(matriz_Ai, n)
 
         soluciones.append(determinante_i / determinante)
 
     return soluciones
 
-
+# ========================================
 # B) Geometría 2D
+# ========================================
+
 # Área de triangulos
-def area_triangulo(p1, p2, p3):
-    #Declaración de la matriz
-    M = np.array([
-        [p1[0], p1[1], 1],
-        [p2[0], p2[1], 1],
-        [p3[0], p3[1], 1]
-    ])
+def area_triangulo(puntos, metodo_det=det_gauss):
 
-    if p1==p2 or p2==p3 or p1==p3: #Si un renglon es iual a otro
-        area = 0.0
-    else:
-        #Cálculo del determinante
-        det = (
-        M[0,0]*(M[1,1]*M[2,2] - M[1,2]*M[2,1]) - 
-        M[0,1]*(M[1,0]*M[2,2] - M[1,2]*M[2,0]) +
-        M[0,2]*(M[1,0]*M[2,1] - M[1,1]*M[2,0])
-        )
+    matriz = [[p[0], p[1], 1] for p in puntos]
 
-        #determinante = det_gauss(matriz, 3)
-        #area = abs(determinante) / 2
+    determinante = metodo_det(matriz, 3)
 
-        area = abs(det) / 2.0
+    area = abs(determinante) / 2
 
     return area
-    
 
+# Prueba de colinealidad
+def colinealidad(puntuntos, metodo_det=det_gauss):
 
-def ecuacion_recta(p1, p2):                                                                                   
-    
+    matriz = [[p[0], p[1], 1] for p in puntuntos]
 
-    a = y1 - y2
-    b = x2 - x1
-    c = x1*y2 - x2*y1
+    determinante = metodo_det(matriz, 3)
 
-    return f"{a}x + {b}y + {c} = 0"
+    return abs(determinante) < 1e-9
 
+# Ecuación de la recta
+def ecuacion_recta(p1, p2, metodo_det=det_gauss):
+
+    A = p1[1] - p2[1]
+    B = -(p1[0] - p2[0])
+    C = metodo_det([[p1[0], p1[1]], [p2[0], p2[1]]], 2)
+
+    resultado = formatear_ecuacion([A, B, C], ["x", "y", ""])
+    return f"{resultado} = 0"
+
+# ========================================
 # C) Geometría 3D
-def volumen_tetraedro(p1, p2, p3, p4):
+# ========================================
 
-    matriz = [
-        [p1[0], p1[1], p1[2], 1],
-        [p2[0], p2[1], p2[2], 1],
-        [p3[0], p3[1], p3[2], 1],
-        [p4[0], p4[1], p4[2], 1]
-    ]
+# Volumen de un Tetraedro
+def volumen_tetraedro(puntos, metodo_det=det_gauss):
 
-    det = det_gauss(matriz, 4)
+    matriz = [[p[0], p[1], p[2], 1.0] for p in puntos]
+
+    det = metodo_det(matriz, 4)
 
     volumen = abs(det) / 6
 
     return volumen
 
+# Prueba de Coplanaridad
+def son_coplanares(puntos, metodo_det=det_gauss):
 
-def son_coplanares(p1, p2, p3, p4, tol=1e-9):
+    matriz = [[p[0], p[1], p[2], 1.0] for p in puntos]
 
-    matriz = [
-        [p1[0], p1[1], p1[2], 1],
-        [p2[0], p2[1], p2[2], 1],
-        [p3[0], p3[1], p3[2], 1],
-        [p4[0], p4[1], p4[2], 1]
-    ]
+    determinante = metodo_det(matriz, 4)
 
-    det = det_gauss(matriz, 4)
+    return abs(determinante) < 1e-9
 
-    return abs(det) < 1e-9
+# Ecuación del Plano
+def ecuacion_plano(puntos, metodo_det=det_gauss):
 
+    p1, p2, p3 = puntos
 
-def ecuacion_plano(p1, p2, p3):
+    A = metodo_det([
+        [p1[1], p1[2], 1],
+        [p2[1], p2[2], 1],
+        [p3[1], p3[2], 1]
+    ])
+    
+    B = -metodo_det([
+        [p1[0], p1[2], 1],
+        [p2[0], p2[2], 1],
+        [p3[0], p3[2], 1]
+    ])
+    
+    C = metodo_det([
+        [p1[0], p1[1], 1],
+        [p2[0], p2[1], 1],
+        [p3[0], p3[1], 1]
+    ])
+    
+    D = -metodo_det([
+        [p1[0], p1[1], p1[2]],
+        [p2[0], p2[1], p2[2]],
+        [p3[0], p3[1], p3[2]]
+    ])
 
-    x1, y1, z1 = p1
-    x2, y2, z2 = p2
-    x3, y3, z3 = p3
-
-    v1 = [x2 - x1, y2 - y1, z2 - z1]
-    v2 = [x3 - x1, y3 - y1, z3 - z1]
-
-    a = v1[1] * v2[2] - v1[2] * v2[1]
-    b = v1[2] * v2[0] - v1[0] * v2[2]
-    c = v1[0] * v2[1] - v1[1] * v2[0]
-    d = -(a * x1 + b * y1 + c * z1)
-
-    return f"{a}x + {b}y + {c}z + {d} = 0"
+    resultado = formatear_ecuacion([A, B, C, D], ["x", "y", "z", ""])
+    return f"{resultado} = 0"

@@ -38,3 +38,11 @@ class Geometria3DFrame(tk.Frame):
             command=lambda: controller.show_frame("PlanoFrame")
         )
         boton_plano.pack(pady=10)
+
+        boton_menu = ttk.Button(
+            self,
+            text="Volver",
+            width=20,
+            command=lambda: controller.show_frame("MenuFrame")
+        )
+        boton_menu.pack(pady=10)

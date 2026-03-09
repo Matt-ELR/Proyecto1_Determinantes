@@ -1,105 +1,103 @@
+# Bibliotecas
 import tkinter as tk
 from tkinter import ttk, messagebox
-import geometria # Donde tienes det_gauss y regla_de_cramer
+import geometria
 
+#Frame
 class ReglaDeCramerFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
 
-        # --- CABECERA ---
-        titulo = ttk.Label(self, text="Regla de Cramer", font=("Arial", 16, "bold"))
-        titulo.pack(pady=10)
+        # Titulo
+        ttk.Label(self, text="Regla de Cramer", font=("Times New Roman", 16, "bold")).pack(pady=10)
 
-        # --- SELECTOR DE TAMAÑO ---
+        # Selector de metodo determinante
         select_frame = ttk.Frame(self)
-        select_frame.pack(pady=5)
-        
+        select_frame.pack(pady=10)
+        ttk.Label(select_frame, text="Metodo de calculo:").pack(side="left", padx=5)
+        self.metodo_var = tk.StringVar(value="Eliminación Gauss")
+        self.combo_metodo = ttk.Combobox(select_frame, textvariable=self.metodo_var,
+                                         values=["Eliminación Gauss", "Formula de Laplace"], 
+                                         width=18, state="readonly")
+        self.combo_metodo.pack(side="left", padx=5)
+
+        # Selector de tamaño del sistema
         ttk.Label(select_frame, text="Tamaño del sistema (n):").pack(side="left", padx=5)
-        self.n_var = tk.StringVar(value="3") # Valor por defecto
-        self.combo_n = ttk.Combobox(select_frame, textvariable=self.n_var, values=["2", "3", "4", "5", "6"], width=5, state="readonly")
+        self.n_var = tk.StringVar(value="3")
+        self.combo_n = ttk.Combobox(select_frame, textvariable=self.n_var, 
+                                    values=["2", "3", "4", "5"], 
+                                    width=3, state="readonly")
         self.combo_n.pack(side="left", padx=5)
         self.combo_n.bind("<<ComboboxSelected>>", self.generar_matriz)
 
-        # --- CONTENEDOR DE LA MATRIZ (Dinámico) ---
-        # Usamos un Canvas si piensas llegar a n=10 para que tenga scroll, 
-        # pero para n=6 un Frame normal basta.
+        # Matriz dinamica
         self.matrix_container = ttk.Frame(self)
-        self.matrix_container.pack(pady=20, padx=20)
+        self.matrix_container.pack(pady=15, padx=20)
+        self.matrix_entries = []
+        self.vector_entries = []
 
-        # Listas para guardar las referencias a los Entry
-        self.matrix_entries = [] # Matriz A
-        self.vector_entries = [] # Vector b (términos independientes)
-
-        # --- BOTONES ---
+        # Contenedor de botones
         btn_frame = ttk.Frame(self)
         btn_frame.pack(pady=10)
-        
-        ttk.Button(btn_frame, text="Resolver Sistema", command=self.resolver).pack(side="left", padx=10)
-        ttk.Button(btn_frame, text="Volver", command=lambda: controller.show_frame("MenuFrame")).pack(side="left")
 
-        # --- RESULTADOS ---
-        self.res_label = ttk.Label(self, text="", font=("Arial", 11, "bold"), foreground="#0056b3")
+        ttk.Button(btn_frame, text="Resolver", command=self.resolver).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Limpiar", command=self.limpiar_campos).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Menú Principal", 
+                   command=lambda: controller.show_frame("MenuFrame")).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Salir", command=self.quit).pack(side="left", padx=5)
+
+        # Resultados
+        self.res_label = ttk.Label(self, text="", font=("Times New Roman", 11, "bold"))
         self.res_label.pack(pady=10)
 
-        # Generar la matriz inicial (3x3)
         self.generar_matriz()
 
     def generar_matriz(self, event=None):
-        # Limpiar lo que haya antes
         for widget in self.matrix_container.winfo_children():
             widget.destroy()
         
         n = int(self.n_var.get())
-        self.matrix_entries = []
-        self.vector_entries = []
+        self.matrix_entries, self.vector_entries = [], []
 
-        # Dibujar encabezados (x1, x2... | b)
-        for j in range(n):
-            ttk.Label(self.matrix_container, text=f"x{j+1}", font=("Arial", 9, "italic")).grid(row=0, column=j+1)
-        ttk.Label(self.matrix_container, text="|  b", font=("Arial", 9, "bold")).grid(row=0, column=n+1)
-
-        # Crear filas
+        #Dibujar Interfaz de Matriz
         for i in range(n):
             row_widgets = []
-            ttk.Label(self.matrix_container, text="|").grid(row=i+1, column=0) # Barra visual
-            
+            ttk.Label(self.matrix_container, text="|").grid(row=i, column=0)
             for j in range(n):
                 e = ttk.Entry(self.matrix_container, width=5)
-                e.grid(row=i+1, column=j+1, padx=2, pady=2)
+                e.grid(row=i, column=j+1, padx=2, pady=2)
                 row_widgets.append(e)
-            
             self.matrix_entries.append(row_widgets)
             
-            # Entrada para el vector b
-            ttk.Label(self.matrix_container, text="|").grid(row=i+1, column=n) # Separador
+            # Vector b (Separado visualmente)
+            ttk.Label(self.matrix_container, text="|").grid(row=i, column=n+1)
             be = ttk.Entry(self.matrix_container, width=5, foreground="brown")
-            be.grid(row=i+1, column=n+1, padx=5, pady=2)
+            be.grid(row=i, column=n+2, padx=5, pady=2)
             self.vector_entries.append(be)
-            
-            ttk.Label(self.matrix_container, text="|").grid(row=i+1, column=n+2) # Barra visual
+            ttk.Label(self.matrix_container, text="|").grid(row=i, column=n+3)
 
     def resolver(self):
         try:
-            n = int(self.n_var.get())
-            A = []
-            b = []
-
-            # Extraer datos de A
-            for i in range(n):
-                fila = [float(self.matrix_entries[i][j].get()) for j in range(n)]
-                A.append(fila)
-                b.append(float(self.vector_entries[i].get()))
-
-            # Llamar a tu lógica (debe estar en geometria.py)
-            soluciones = geometria.regla_de_cramer(A, b)
+            # Metodo Determinante
+            metodo_func = geometria.det_gauss if self.metodo_var.get() == "Eliminación Gauss" else geometria.det_laplace
             
-            # Formatear salida
-            res_text = "Soluciones: " + ", ".join([f"x{i+1}={val:.2f}" for i, val in enumerate(soluciones)])
+            # Estracción de Datos
+            A = [[float(e.get()) for e in fila] for fila in self.matrix_entries]
+            b = [float(e.get()) for e in self.vector_entries]
+
+            # Resultado
+            soluciones = geometria.regla_de_cramer(A, b, metodo_func)
+            res_text = "Soluciones: " + ", ".join([f"x{i+1}={val:.6g}" for i, val in enumerate(soluciones)])
             self.res_label.config(text=res_text, foreground="#0056b3")
 
-        except ValueError as e:
-            if "no tiene solución única" in str(e):
-                messagebox.showwarning("Cramer", "El sistema no tiene solución única (Det = 0)")
-            else:
-                messagebox.showerror("Error", "Asegúrate de llenar todos los campos con números.")
+        except ValueError:
+            messagebox.showerror("Error", "Llene todos los campos con valores numéricos.")
+        except Exception as e:
+            messagebox.showwarning("Cramer", str(e))
+
+    def limpiar_campos(self):
+        for fila in self.matrix_entries:
+            for e in fila: e.delete(0, tk.END)
+        for e in self.vector_entries: e.delete(0, tk.END)
+        self.res_label.config(text="")
