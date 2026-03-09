@@ -1,53 +1,58 @@
 import tkinter as tk
-from tkinter import ttk
-import geometria  # Importamos tu lógica de la raíz
+from tkinter import ttk, messagebox
+import geometria
 
 class ColinealidadFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        # Título académico
-        titulo = ttk.Label(
-            self, 
-            text="Prueba de Colinealidad", 
-            font=("Times New Roman", 16, "bold")
-        )
-        titulo.pack(pady=15)
+        # Título
+        ttk.Label(self, text="Prueba de Colinealidad", font=("Times New Roman", 16, "bold")).pack(pady=15)
+        ttk.Label(self, text="Si el det = 0, los puntos están en la misma recta", font=("Times New Roman", 10, "italic")).pack(pady=5)
 
-        descripcion = ttk.Label(
-            self, 
-            text="Si el det = 0, los puntos están en la misma recta", 
-            font=("Times New Roman", 11, "italic")
-        )
-        descripcion.pack(pady=5)
+        # Seleccionar el Metodo Determinante
+        select_frame = ttk.Frame(self)
+        select_frame.pack(pady=10)
+        ttk.Label(select_frame, text="Metodo de calculo:").pack(side="left", padx=5)
+        self.metodo_var = tk.StringVar(value="Eliminación Gauss")
+        self.combo_metodo = ttk.Combobox(select_frame, textvariable=self.metodo_var,
+                                         values=["Eliminación Gauss", "Formula de Laplace"], 
+                                         width=18, state="readonly")
+        self.combo_metodo.pack(side="left", padx=5)
 
-        # Contenedor del determinante visual
+        # Marco para la matriz de determinantes
         matrix_frame = ttk.Frame(self)
-        matrix_frame.pack(pady=10)
+        matrix_frame.pack(pady=15)
 
-        # Barra izquierda
+        # Barra izquierda del determinante
         ttk.Label(matrix_frame, text="|", font=("Times New Roman", 28)).grid(row=0, column=0, rowspan=3)
 
-        # Campos de entrada (P1, P2, P3)
+        # Matriz
         self.entries = []
         for i in range(3):
-            x_ent = ttk.Entry(matrix_frame, width=6)
-            y_ent = ttk.Entry(matrix_frame, width=6)
-            x_ent.grid(row=i, column=1, padx=5, pady=3)
-            y_ent.grid(row=i, column=2, padx=5, pady=3)
+            row_entries = []
+            ex = ttk.Entry(matrix_frame, width=6)
+            ey = ttk.Entry(matrix_frame, width=6)
+            ex.grid(row=i, column=1, padx=5, pady=3)
+            ey.grid(row=i, column=2, padx=5, pady=3)
             ttk.Label(matrix_frame, text="1").grid(row=i, column=3, padx=5)
-            self.entries.append((x_ent, y_ent))
+            row_entries.extend([ex, ey])
+            self.entries.append(row_entries)
 
-        # Barra derecha
+        # Barra derecha del determinante
         ttk.Label(matrix_frame, text="|", font=("Times New Roman", 28)).grid(row=0, column=4, rowspan=3)
 
-        # Botones de acción
+        # Botones
         btn_frame = ttk.Frame(self)
-        btn_frame.pack(pady=15)
+        btn_frame.pack(pady=25)
 
-        ttk.Button(btn_frame, text="Verificar", width=15, command=self.verificar).grid(row=0, column=0, padx=10)
-        ttk.Button(btn_frame, text="Volver", width=10, 
-                   command=lambda: controller.show_frame("MenuFrame")).grid(row=0, column=1)
+        ttk.Button(btn_frame, text="Verificar", command=self.verificar).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Limpiar", command=self.limpiar_campos).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Volver (2D)", 
+                   command=lambda: controller.show_frame("Geometria2DFrame")).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Menú Principal", 
+                   command=lambda: controller.show_frame("MenuFrame")).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Salir", command=self.quit).pack(side="left", padx=5)
 
         # Resultado dinámico
         self.resultado = ttk.Label(self, text="", font=("Times New Roman", 12, "bold"))
@@ -55,18 +60,26 @@ class ColinealidadFrame(ttk.Frame):
 
     def verificar(self):
         try:
-            # Recolección de datos
-            p1 = (float(self.entries[0][0].get()), float(self.entries[0][1].get()))
-            p2 = (float(self.entries[1][0].get()), float(self.entries[1][1].get()))
-            p3 = (float(self.entries[2][0].get()), float(self.entries[2][1].get()))
+            # Metodo Determinante
+            metodo_func = geometria.det_gauss if self.metodo_var.get() == "Eliminación Gauss" else geometria.det_laplace
+            # Estracción de Datos
+            matriz = [[float(row[0].get()), float(row[1].get())] for row in self.entries]
 
-            # Llamada a tu lógica de colinealidad
-            es_colineal = geometria.colinealidad(p1, p2, p3)
+            # Cálculo
+            es_colineal = geometria.colinealidad(matriz, metodo_func)
 
+            # Mostrar resultados detallados
             if es_colineal:
-                self.resultado.config(text="¡Son Colineales! (Det ≈ 0)", foreground="green")
+                self.resultado.config(text="¡Son Colineales! (Están en la misma recta)")
             else:
-                self.resultado.config(text="No son Colineales (Det ≠ 0)", foreground="red")
+                self.resultado.config(text="No son Colineales",)
 
         except ValueError:
-            self.resultado.config(text="Error: Datos no válidos", foreground="orange")
+            messagebox.showerror("Error", "Asegúrate de que todos los puntos tengan coordenadas numéricas.")
+        except Exception as e:
+            messagebox.showerror("Error en Cálculo", f"Ocurrió un error inesperado: {e}")
+
+    def limpiar_campos(self):
+        for row in self.entries:
+            for e in row: e.delete(0, tk.END)
+        self.resultado.config(text="")

@@ -15,29 +15,29 @@ class MenuFrame(tk.Frame):
         )
         titulo.pack(pady=20)
 
-        boton_triangulo = ttk.Button(
+        boton_cramer = ttk.Button(
             self,
             text="Regla de Cramer",
             width=20,
             command=lambda: controller.show_frame("ReglaDeCramerFrame")
         )
-        boton_triangulo.pack(pady=10)
+        boton_cramer.pack(pady=10)
 
-        boton_recta = ttk.Button(
+        boton_2d = ttk.Button(
             self,
             text="Geometría 2D",
             width=20,
             command=lambda: controller.show_frame("Geometria2DFrame")
         )
-        boton_recta.pack(pady=10)
+        boton_2d.pack(pady=10)
 
-        boton_plano = ttk.Button(
+        boton_3d = ttk.Button(
             self,
             text="Geometría 3D",
             width=20,
             command=lambda: controller.show_frame("Geometria3DFrame")
         )
-        boton_plano.pack(pady=10)
+        boton_3d.pack(pady=10)
 
         boton_salir = ttk.Button(
             self,
