@@ -47,11 +47,11 @@ def det_gauss(matriz, n=None):
 
     return determinante
 
-# 
+# =======================================
 # Formatos
-#
+# =======================================
 
-# Funciones de rectay plano
+# Funciones de recta y plano
 def formatear_ecuacion(coeficientes, variables):
     terminos = []
 
